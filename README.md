@@ -1,4 +1,4 @@
-# Ubuntu ARM64 환경에서 Overleaf 서버 완벽 구축 가이드 (수정본)
+# Ubuntu ARM64 환경에서 Overleaf 서버 구축 가이드 (20250907)
 
 이 문서는 ARM64 아키텍처를 사용하는 Ubuntu 서버(예: AWS Graviton, Raspberry Pi, Apple Silicon VM 등)에서 Overleaf Community Edition을 소스 코드부터 직접 빌드하고, 외부 접속 및 추가 패키지 설치까지 완료하는 전체 과정을 안내합니다.
 
