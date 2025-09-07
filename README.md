@@ -1,4 +1,23 @@
-Ubuntu ARM64 환경에서 Overleaf 서버 완벽 구축 가이드 (수정본)이 문서는 ARM64 아키텍처를 사용하는 Ubuntu 서버(예: AWS Graviton, Raspberry Pi, Apple Silicon VM 등)에서 Overleaf Community Edition을 소스 코드부터 직접 빌드하고, 외부 접속 및 추가 패키지 설치까지 완료하는 전체 과정을 안내합니다.목차사전 준비: Docker, Git 등 필수 도구 설치ARM64 이미지 빌드: Overleaf 소스 코드를 ARM64 환경에 맞게 컴파일Toolkit 연동 및 설정: 빌드한 이미지를 overleaf-toolkit에서 사용하도록 설정서버 실행 및 외부 접속: 방화벽을 설정하고 서버를 실행하여 외부 접속 확인(선택) 추가 패키지 설치 및 영구 저장: TeX Live 전체 패키지를 설치하고 이미지에 변경사항 저장(보너스) 불필요한 Docker 이미지 정리1. 사전 준비서버에 접속하여 Docker, Docker Compose, Git을 설치합니다.# 시스템 패키지 목록 업데이트 및 필수 패키지 설치
+# Ubuntu ARM64 환경에서 Overleaf 서버 완벽 구축 가이드 (수정본)
+
+이 문서는 ARM64 아키텍처를 사용하는 Ubuntu 서버(예: AWS Graviton, Raspberry Pi, Apple Silicon VM 등)에서 Overleaf Community Edition을 소스 코드부터 직접 빌드하고, 외부 접속 및 추가 패키지 설치까지 완료하는 전체 과정을 안내합니다.
+
+## 목차
+1.  **사전 준비**: Docker, Git 등 필수 도구 설치
+2.  **ARM64 이미지 빌드**: Overleaf 소스 코드를 ARM64 환경에 맞게 컴파일
+3.  **Toolkit 연동 및 설정**: 빌드한 이미지를 `overleaf-toolkit`에서 사용하도록 설정
+4.  **서버 실행 및 외부 접속**: 방화벽을 설정하고 서버를 실행하여 외부 접속 확인
+5.  **(선택) 추가 패키지 설치 및 영구 저장**: TeX Live 전체 패키지를 설치하고 이미지에 변경사항 저장
+6.  **(보너스) 불필요한 Docker 이미지 정리**
+
+---
+
+## 1. 사전 준비
+
+서버에 접속하여 Docker, Docker Compose, Git을 설치합니다.
+
+```bash
+# 시스템 패키지 목록 업데이트 및 필수 패키지 설치
 sudo apt-get update
 sudo apt-get install -y ca-certificates curl gnupg git
 
@@ -21,7 +40,16 @@ sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plug
 sudo usermod -aG docker $USER
 
 # ==> 중요: 그룹 설정을 적용하려면 터미널을 종료했다가 다시 접속하세요!
-2. ARM64 이미지 빌드ARM64 환경에서는 공식 Docker 이미지를 사용할 수 없으므로, 소스 코드에서 직접 빌드해야 합니다.# 1. 홈 디렉토리로 이동하여 Overleaf 소스 코드 복제
+```
+
+---
+
+## 2. ARM64 이미지 빌드
+
+ARM64 환경에서는 공식 Docker 이미지를 사용할 수 없으므로, 소스 코드에서 직접 빌드해야 합니다.
+
+```bash
+# 1. 홈 디렉토리로 이동하여 Overleaf 소스 코드 복제
 cd ~
 git clone [https://github.com/overleaf/overleaf.git](https://github.com/overleaf/overleaf.git)
 
@@ -33,7 +61,17 @@ make build-base
 
 # 4. Community 이미지 빌드 (최종 Overleaf 이미지 생성)
 make build-community
-이 과정이 성공적으로 끝나면, 로컬 Docker 환경에 sharelatex/sharelatex:main 이라는 ARM64용 이미지가 생성됩니다.3. Toolkit 연동 및 설정이제 빌드한 이미지를 overleaf-toolkit이 사용하도록 설정합니다.# 1. 홈 디렉토리로 이동하여 overleaf-toolkit 복제 및 초기화
+```
+이 과정이 성공적으로 끝나면, 로컬 Docker 환경에 `sharelatex/sharelatex:main` 이라는 ARM64용 이미지가 생성됩니다.
+
+---
+
+## 3. Toolkit 연동 및 설정
+
+이제 빌드한 이미지를 `overleaf-toolkit`이 사용하도록 설정합니다.
+
+```bash
+# 1. 홈 디렉토리로 이동하여 overleaf-toolkit 복제 및 초기화
 cd ~
 git clone [https://github.com/overleaf/toolkit.git](https://github.com/overleaf/toolkit.git) ./overleaf-toolkit
 cd ./overleaf-toolkit
@@ -49,12 +87,24 @@ docker tag sharelatex/sharelatex:main sharelatex/sharelatex:5.5.4
 
 # 4. 외부 접속을 위한 설정 파일 수정
 nano config/overleaf.rc
-overleaf.rc 파일에서 아래 부분을 수정하고 저장(Ctrl+X, Y, Enter)합니다.# 외부 접속을 허용하도록 IP를 0.0.0.0으로 변경합니다.
+```
+
+`overleaf.rc` 파일에서 아래 부분을 수정하고 저장(`Ctrl+X`, `Y`, `Enter`)합니다.
+
+```bash
+# 외부 접속을 허용하도록 IP를 0.0.0.0으로 변경합니다.
 OVERLEAF_LISTEN_IP=0.0.0.0
 
 # Community Edition에서는 지원되지 않는 기능이므로 false로 변경하여 경고를 제거합니다.
 SIBLING_CONTAINERS_ENABLED=false
-4. 서버 실행 및 외부 접속# 1. 방화벽에서 80번(HTTP), 22번(SSH) 포트 허용
+```
+
+---
+
+## 4. 서버 실행 및 외부 접속
+
+```bash
+# 1. 방화벽에서 80번(HTTP), 22번(SSH) 포트 허용
 sudo iptables -I INPUT -p tcp --dport 80 -j ACCEPT
 sudo iptables -I INPUT -p tcp --dport 22 -j ACCEPT
 
@@ -63,7 +113,18 @@ bin/up -d
 
 # 3. 공인 IP 주소 확인
 curl ifconfig.me
-이제 **다른 기기(PC, 스마트폰 등)**의 웹 브라우저에서 http://<확인된_공인_IP> 주소로 접속하여 /launchpad 페이지에서 관리자 계정을 생성합니다.5. (선택) 추가 패키지 설치 및 영구 저장Overleaf Community Edition은 필수 패키지만 포함하고 있으므로, 모든 패키지를 설치해 패키지 누락으로 인한 문제를 방지합니다.# 1. 실행 중인 Overleaf 컨테이너의 셸에 접속
+```
+
+이제 **다른 기기(PC, 스마트폰 등)**의 웹 브라우저에서 `http://<확인된_공인_IP>` 주소로 접속하여 `/launchpad` 페이지에서 관리자 계정을 생성합니다.
+
+---
+
+## 5. (선택) 추가 패키지 설치 및 영구 저장
+
+Overleaf Community Edition은 필수 패키지만 포함하고 있으므로, 모든 패키지를 설치해 패키지 누락으로 인한 문제를 방지합니다.
+
+```bash
+# 1. 실행 중인 Overleaf 컨테이너의 셸에 접속
 bin/shell
 
 # --- 아래부터는 컨테이너 내부에서 실행 ---
@@ -94,5 +155,16 @@ echo 5.5.4-with-texlive-full > config/version
 
 # 9. 변경된 설정으로 서버 재시작
 bin/up -d
-이제 서버가 재시작되어도 모든 TeX Live 패키지가 포함된 상태로 유지됩니다.6. (보너스) 불필요한 Docker 이미지 정리docker commit 이나 빌드 과정에서 이름이 없는(<none>) 중간 이미지들이 생길 수 있습니다. 이런 이미지들은 공간만 차지하므로 아래 명령어로 깔끔하게 정리할 수 있습니다.docker image prune
-y를 입력하여 삭제를 진행하면 됩니다.Referenceshttps://github.com/overleaf/overleaf/issues/881https://docs.overleaf.com/on-premises/user-and-project-management/project-management#updating-project-compile-timeouthttps://statalgo.tistory.com/entry/Docker-%EC%BB%A8%ED%85%8C%EC%9D%B4%EB%84%88-overleaf-docker-%EC%98%AC%EB%A6%AC%EA%B8%B0
+```
+이제 서버가 재시작되어도 모든 TeX Live 패키지가 포함된 상태로 유지됩니다.
+
+---
+
+## 6. (보너스) 불필요한 Docker 이미지 정리
+
+`docker commit` 이나 빌드 과정에서 이름이 없는(`<none>`) 중간 이미지들이 생길 수 있습니다. 이런 이미지들은 공간만 차지하므로 아래 명령어로 깔끔하게 정리할 수 있습니다.
+
+```bash
+docker image prune
+```
+`y`를 입력하여 삭제를 진행하면 됩니다.
