@@ -162,7 +162,7 @@ bin/up -d
 
 ---
 
-## 6. (보너스) 불필요한 Docker 이미지 정리
+## 6. 불필요한 Docker 이미지 정리
 
 `docker commit` 이나 빌드 과정에서 이름이 없는(`<none>`) 중간 이미지들이 생길 수 있습니다. 이런 이미지들은 공간만 차지하므로 아래 명령어로 깔끔하게 정리할 수 있습니다.
 
@@ -176,3 +176,4 @@ docker image prune
 - https://docs.overleaf.com/on-premises/user-and-project-management/project-management#updating-project-compile-timeout
 - https://statalgo.tistory.com/entry/Docker-%EC%BB%A8%ED%85%8C%EC%9D%B4%EB%84%88-overleaf-docker-%EC%98%AC%EB%A6%AC%EA%B8%B0
 - https://shihabkhan1.github.io/overleaf/stepbystep.html
+- https://www.reddit.com/r/LaTeX/comments/1as53qy/an_easy_guide_to_selfhost_overleaf_community/
