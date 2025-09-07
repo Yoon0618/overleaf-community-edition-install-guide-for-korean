@@ -170,3 +170,9 @@ bin/up -d
 docker image prune
 ```
 `y`를 입력하여 삭제를 진행하면 됩니다.
+
+## References
+- https://github.com/overleaf/overleaf/issues/881
+- https://docs.overleaf.com/on-premises/user-and-project-management/project-management#updating-project-compile-timeout
+- https://statalgo.tistory.com/entry/Docker-%EC%BB%A8%ED%85%8C%EC%9D%B4%EB%84%88-overleaf-docker-%EC%98%AC%EB%A6%AC%EA%B8%B0
+- https://shihabkhan1.github.io/overleaf/stepbystep.html
